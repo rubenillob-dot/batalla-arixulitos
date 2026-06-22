@@ -110,7 +110,8 @@ const CANCIONES_DATA = [
         autor: "aandreiiiitaaaa",
         caratula: "imagen/Ticket dorado.png",
         audio: "musica/Ticket dorado.mp3",
-        letra: `<b>[Intro]</b><br>Chaaacha…<br>que no se oye bieeen…<br><br><b>[Verso 1]</b><br>Twitch prendío, ya son las seis<br>esperando a que arixu prenda de una vez<br>de pronto empezó, luchando se quedó, pero la puerta del garaje sin vida la dejó<br>otra partida más<br>otra vez sin fe<br>apostando No a la predi para ganar puntos otra vez.<br><br>Chaaacha…<br>que no se oye bieeen…<br><br><b>[Pre-Coro]</b><br>No me hables de suerte<br>siempre sale al revés<br>busco el ticket dorado<br>y no toca ni una vez<br>llegaron Piyu y cheno no encontraron el freno, chocaron con el muro y quedó feo el estreno.<br><br><b>[Coro]</b><br>y la puerta la aplasta otra vez<br>Arixu se fue<br>por la puerta del garaje y no llegó al top 10<br><br>&quot;Le pregunto a Xeno: ¿me echaste de menos?&quot; él responde que sí… ( pero nooo) y explotamos riendo luego<br><br>llega la otra semana y<br>el ticket dorado<br>de nuevo no me ha tocado<br><br>Suena el móvil, veinte llamadas sin contestar,<br>&quot;eran 23 bro&quot;… me empiezan a vacilar.<br><br><b>[Final]</b><br>Chaaachaa que se acabó la sesión`
+        letra: `<b>[Intro]</b><br>Chaaacha…<br>que no se oye bieeen…<br><br><b>[Verso 1]</b><br>Twitch prendío, ya son las seis<br>esperando a que arixu prenda de una vez<br>de pronto empezó, luchando se quedó, pero la puerta del garaje sin vida la dejó<br>otra partida más<br>otra vez sin fe<br>apostando No a la predi para ganar puntos otra vez.<br><br>Chaaacha…<br>que no se oye bieeen…<br><br><b>[Pre-Coro]</b><br>No me hables de suerte<br>siempre sale al revés<br>busco el ticket dorado<br>y no toca ni una vez<br>llegaron Piyu y cheno no encontraron el freno, chocaron con el muro y quedó feo el estreno.<br><br><b>[Coro]</b><br>y la puerta la aplasta otra vez<br>Arixu se fue<br>por la puerta del garaje y no llegó al top 10<br><br>&quot;Le pregunto a Xeno: ¿me echaste de menos?&quot; él responde que sí… ( pero nooo) y explotamos riendo luego<br><br>llega la otra semana y<br>el ticket dorado<br>de nuevo no me ha tocado<br><br>Suena el móvil, veinte llamadas sin contestar,<br>&quot;eran 23 bro&quot;… me empiezan a vacilar.<br><br><b>[Final]</b><br>Chaaachaa que se acabó la sesión`,
+        activo: false
     },
     {
         id: 14,
@@ -119,7 +120,7 @@ const CANCIONES_DATA = [
         caratula: "",
         audio: "",
         letra: "Letra...",
-        activo: true
+        activo: false
     },
     {
         id: 15,
@@ -140,7 +141,7 @@ function renderizarCanciones() {
     const activeSongs = CANCIONES_DATA.filter(song => song.activo !== false);
     
     let html = '';
-    const numCombats = 7;
+    const numCombats = 6;
     
     for (let c = 1; c <= numCombats; c++) {
         const songA = activeSongs[(c - 1) * 2];
@@ -887,6 +888,260 @@ function cancelarVotacionChat() {
     if (currentVoterTimeout) {
         clearTimeout(currentVoterTimeout);
     }
+}
+
+// === LOGICA DE LA RULETA DE FASE FINAL ===
+
+let ruletaGanadores = [];
+let ruletaDisponibles = [];
+let ruletaSpinsCount = 0;
+let ruletaCurrentRotation = 0;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnComenzar = document.getElementById('btnComenzarRuleta');
+    const btnGirar = document.getElementById('btnGirarRuleta');
+    
+    if (btnComenzar) {
+        btnComenzar.addEventListener('click', function() {
+            // 1. Obtener ganadores de los 6 combates
+            ruletaGanadores = obtenerGanadoresFaseFinal();
+            ruletaDisponibles = [...ruletaGanadores];
+            ruletaSpinsCount = 0;
+            ruletaCurrentRotation = 0;
+            
+            // Resetear podio visualmente
+            resetearPodioVisual();
+            
+            // Dibujar la ruleta con los ganadores actuales
+            dibujarRuleta(ruletaGanadores);
+            
+            // Habilitar botón girar
+            if (btnGirar) {
+                btnGirar.disabled = false;
+                btnGirar.innerText = "GIRAR";
+            }
+
+            // Ocultar botón de comenzar y mostrar el contenedor con fade-in
+            this.style.display = 'none';
+            const contenedor = document.getElementById('contenedorRuleta');
+            if (contenedor) {
+                contenedor.style.display = 'flex';
+                // Forzar reflujo y añadir clase 'show' para disparar la animación fade-in
+                void contenedor.offsetWidth;
+                contenedor.classList.add('show');
+            }
+        });
+    }
+
+    if (btnGirar) {
+        btnGirar.addEventListener('click', function() {
+            if (ruletaDisponibles.length === 0 || ruletaSpinsCount >= 3) return;
+            
+            const btn = this;
+            btn.disabled = true; // Deshabilitar durante el giro
+            
+            // 1. Elegir ganador al azar entre los disponibles
+            const randomIndex = Math.floor(Math.random() * ruletaDisponibles.length);
+            const winnerSong = ruletaDisponibles[randomIndex];
+            
+            // 2. Encontrar el índice original en los 6 ganadores
+            const originalIdx = ruletaGanadores.findIndex(s => s.id === winnerSong.id);
+            if (originalIdx === -1) {
+                btn.disabled = false;
+                return;
+            }
+            
+            // 3. Calcular rotación de destino
+            const targetAngle = (240 - originalIdx * 60 + 360) % 360;
+            const currentRotationNormalized = ruletaCurrentRotation % 360;
+            let angleDiff = targetAngle - currentRotationNormalized;
+            if (angleDiff <= 0) {
+                angleDiff += 360;
+            }
+            
+            const extraSpins = 5; // 5 giros completos para la emoción
+            const totalNewRotation = ruletaCurrentRotation + angleDiff + (extraSpins * 360);
+            ruletaCurrentRotation = totalNewRotation;
+            
+            // 4. Sonar redoble de tambores
+            const sonidoTambores = document.getElementById('sonidoTambores');
+            if (sonidoTambores) {
+                sonidoTambores.currentTime = 0;
+                sonidoTambores.play().catch(e => console.log("Tambores audio play blocked/missing", e));
+            }
+            
+            // 5. Aplicar la rotación al canvas
+            const canvas = document.getElementById('canvasRuleta');
+            if (canvas) {
+                canvas.style.transform = `rotate(${totalNewRotation}deg)`;
+            }
+            
+            // 6. Esperar a que termine la animación (4 segundos)
+            setTimeout(() => {
+                // Play sonidoRevelar
+                const sonidoRevelar = document.getElementById('sonidoRevelar');
+                if (sonidoRevelar) {
+                    sonidoRevelar.currentTime = 0;
+                    sonidoRevelar.play().catch(e => console.log("Revelar audio play blocked/missing", e));
+                }
+                
+                // Incrementar contador de tiradas
+                ruletaSpinsCount++;
+                
+                // Eliminar de los disponibles
+                ruletaDisponibles.splice(randomIndex, 1);
+                
+                // Colocar en el podio correspondiente
+                let slotId = '';
+                if (ruletaSpinsCount === 1) {
+                    slotId = 'Bronce'; // 3º puesto
+                } else if (ruletaSpinsCount === 2) {
+                    slotId = 'Plata'; // 2º puesto
+                } else if (ruletaSpinsCount === 3) {
+                    slotId = 'Oro'; // 1º puesto (Campeón)
+                }
+                
+                const podioBlock = document.getElementById('podio' + slotId);
+                if (podioBlock) {
+                    podioBlock.classList.add('active');
+                    podioBlock.querySelector('.podio-winner-name').innerText = winnerSong.autor;
+                    podioBlock.querySelector('.podio-winner-song').innerText = winnerSong.titulo;
+                    
+                    if (slotId === 'Oro') {
+                        // Animación especial de celebración
+                        podioBlock.classList.add('celebration-glow');
+                    }
+                }
+                
+                // Habilitar botón para el siguiente giro si no se ha terminado
+                if (ruletaSpinsCount < 3) {
+                    btn.disabled = false;
+                } else {
+                    btn.innerText = "FINALIZADO";
+                    btn.disabled = true;
+                }
+            }, 4000);
+        });
+    }
+});
+
+function resetearPodioVisual() {
+    const slots = ['Plata', 'Oro', 'Bronce'];
+    slots.forEach(slot => {
+        const block = document.getElementById('podio' + slot);
+        if (block) {
+            block.classList.remove('active', 'celebration-glow');
+            block.querySelector('.podio-winner-name').innerText = '-';
+            block.querySelector('.podio-winner-song').innerText = '-';
+        }
+    });
+}
+
+function obtenerNotaFinalCancion(song) {
+    if (!song) return 0;
+    // Leer valor del input de Ari
+    const inputAri = document.getElementById('inputAri' + song.id);
+    const valAri = inputAri ? inputAri.value : "";
+    const ari = valAri !== "" ? parseFloat(valAri) : 0;
+    
+    // Leer valor del badge de Twitch
+    const twitchBadge = document.getElementById('twitchScore' + song.id);
+    let twitchVal = 0;
+    if (twitchBadge && twitchBadge.classList.contains('voted')) {
+        twitchVal = parseFloat(twitchBadge.textContent.replace(/[^\d\.]/g, '')) || 0;
+    }
+    
+    // Si Ari y Twitch no han votado, la nota es 0
+    if (valAri === "" && (!twitchBadge || !twitchBadge.classList.contains('voted'))) {
+        return 0;
+    }
+    
+    return parseFloat(((ari * 0.75) + (twitchVal * 0.25)).toFixed(1));
+}
+
+function obtenerGanadoresFaseFinal() {
+    const activeSongs = CANCIONES_DATA.filter(song => song.activo !== false);
+    const ganadores = [];
+    for (let c = 1; c <= 6; c++) {
+        const songA = activeSongs[(c - 1) * 2];
+        const songB = activeSongs[(c - 1) * 2 + 1];
+        
+        if (!songA) continue;
+        if (!songB) {
+            ganadores.push(songA);
+            continue;
+        }
+        
+        const scoreA = obtenerNotaFinalCancion(songA);
+        const scoreB = obtenerNotaFinalCancion(songB);
+        
+        if (scoreA >= scoreB) {
+            ganadores.push(songA);
+        } else {
+            ganadores.push(songB);
+        }
+    }
+    return ganadores;
+}
+
+function dibujarRuleta(ganadores) {
+    const canvas = document.getElementById('canvasRuleta');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const cw = canvas.width;
+    const ch = canvas.height;
+    const cx = cw / 2;
+    const cy = ch / 2;
+    const r = cx - 10;
+
+    ctx.clearRect(0, 0, cw, ch);
+
+    const numSlices = 6;
+    const arcAngle = (2 * Math.PI) / numSlices;
+
+    for (let i = 0; i < numSlices; i++) {
+        const angle = i * arcAngle;
+        
+        // Color alterno: negro y azul eléctrico
+        ctx.fillStyle = (i % 2 === 0) ? '#121212' : '#00bfff';
+        
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, r, angle, angle + arcAngle);
+        ctx.closePath();
+        ctx.fill();
+        
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Escribir texto
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(angle + arcAngle / 2);
+        
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = (i % 2 === 0) ? '#ffffff' : '#121212';
+        ctx.font = 'italic bold 14px "Montserrat", sans-serif';
+        
+        const artista = (ganadores[i] && ganadores[i].autor) ? ganadores[i].autor : `Ganador ${i+1}`;
+        const textoMostrar = artista.length > 15 ? artista.substring(0, 13) + '..' : artista;
+        ctx.fillText(textoMostrar, r - 30, 0);
+        ctx.restore();
+    }
+    
+    // Círculo central decorativo
+    ctx.beginPath();
+    ctx.arc(cx, cy, 35, 0, 2 * Math.PI);
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.strokeStyle = '#00bfff';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
 }
 
 

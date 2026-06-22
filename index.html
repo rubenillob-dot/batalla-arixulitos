@@ -178,6 +178,66 @@
     <div class="grid-canciones">
     </div>
 
+    <!-- SECCIÓN DE LA RULETA Y FASE FINAL -->
+    <div class="fase-final-wrapper">
+        <button id="btnComenzarRuleta" class="btn-comenzar-ruleta">COMENZAR RULETA</button>
+        
+        <div id="contenedorRuleta" class="contenedor-ruleta">
+            <div class="instrucciones-ruleta">
+                <i class="fa-solid fa-circle-info"></i>
+                <span><strong>INSTRUCCIONES:</strong> Giraremos la ruleta para decidir el podio final entre los 6 ganadores de las batallas. La 1ª tirada revelará el 3º puesto, la 2ª el 2º puesto, y la tirada final coronará al Campeón.</span>
+            </div>
+            
+            <div class="ruleta-layout">
+                <!-- Ruleta Visual -->
+                <div class="ruleta-container">
+                    <div class="ruleta-pointer">▼</div>
+                    <canvas id="canvasRuleta" width="400" height="400"></canvas>
+                    <button id="btnGirarRuleta" class="btn-girar-ruleta">GIRAR</button>
+                </div>
+
+                <!-- Podio -->
+                <div class="podio-container">
+                    <h3 class="podio-title">PODIO FINAL</h3>
+                    <div class="podio-visual">
+                        <!-- Segundo Puesto -->
+                        <div class="podio-block plata" id="podioPlata">
+                            <div class="podio-winner-info">
+                                <div class="podio-winner-name">-</div>
+                                <div class="podio-winner-song">-</div>
+                            </div>
+                            <div class="podio-step">
+                                <div class="podio-medal">2º</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Primer Puesto -->
+                        <div class="podio-block oro" id="podioOro">
+                            <div class="podio-winner-info">
+                                <div class="podio-winner-name">-</div>
+                                <div class="podio-winner-song">-</div>
+                            </div>
+                            <div class="podio-step">
+                                <div class="podio-medal">1º</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tercer Puesto -->
+                        <div class="podio-block bronce" id="podioBronce">
+                            <div class="podio-winner-info">
+                                <div class="podio-winner-name">-</div>
+                                <div class="podio-winner-song">-</div>
+                            </div>
+                            <div class="podio-step">
+                                <div class="podio-medal">3º</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 
 

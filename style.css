@@ -2923,14 +2923,40 @@ header h1.main-title {
     min-width: 0 !important;
     width: 100% !important;
     flex: 1;
-    min-height: max-content !important;
-    padding-bottom: 1.5rem !important;
+    min-height: unset !important;
     height: auto !important;
+    padding: 12px 18px !important;
+    pointer-events: auto !important; /* Reactiva los eventos de ratón anulados por herencia de .derrotado */
+    cursor: pointer !important; /* Cambia el cursor al pasar por encima */
+    transition: all 0.3s ease-in-out !important; /* Transición suave de entrada y salida */
+}
+
+/* Ocultar elementos secundarios del clon en el Cementerio (incluido reproductor) */
+.cementerio-grid .card .song-title,
+.cementerio-grid .card .scoring-row,
+.cementerio-grid .card .player-ui {
+    display: none !important;
+}
+
+/* Centrar y reorganizar contenido restante en la tarjeta clonada */
+.cementerio-grid .card .card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center !important;
+    align-items: center !important; /* Centrado horizontal */
+    align-self: center !important;
+    height: auto !important;
+    width: 100% !important;
+}
+
+.cementerio-grid .card .author-row {
+    justify-content: center !important;
+    font-size: 1.35rem !important; /* Nombre de artista grande */
+    transition: all 0.3s ease-in-out !important; /* Suavidad en el cambio de color */
 }
 
 /* Forzar que los textos no se corten en las tarjetas clonadas del cementerio */
 .cementerio-grid .card .author-row,
-.cementerio-grid .card .song-title,
 .cementerio-grid .card .podio-winner-name,
 .cementerio-grid .card .podio-winner-song {
     white-space: normal !important;
@@ -2944,33 +2970,37 @@ header h1.main-title {
 .card.caido-en-batalla {
     filter: grayscale(80%) brightness(0.7) !important;
     opacity: 0.8;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.3s ease-in-out !important;
     position: relative;
     border-color: rgba(139, 37, 37, 0.25) !important;
 }
 
 .card.caido-en-batalla,
-.card.caido-en-batalla .author-row,
-.card.caido-en-batalla .song-title,
-.card.caido-en-batalla .time-text {
+.card.caido-en-batalla .author-row {
     color: #ffffff !important;
 }
 
-.card.caido-en-batalla:hover {
-    filter: grayscale(20%) brightness(1) !important;
+/* Hover de tarjeta caída con aura roja agresiva (Forzada para Cementerio) */
+.cementerio-grid .card.caido-en-batalla:hover {
+    filter: grayscale(0%) brightness(1.1) !important; /* Recupera color y luz */
     opacity: 1 !important;
-    border-color: #8b2525 !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.9), 0 0 15px rgba(139, 37, 37, 0.3) !important;
+    border-color: #ff0000 !important; /* Borde rojo sangre */
+    box-shadow: 0 0 25px 5px rgba(255, 0, 0, 0.7) !important; /* Aura roja intensa */
+    transform: translateY(-5px) !important; /* Pequeño levantamiento dinámico */
 }
 
-/* Sello Graffiti CAÍDO sobre la carátula */
+.cementerio-grid .card.caido-en-batalla:hover .author-row {
+    color: #ff3333 !important; /* El nombre del artista se tiñe de rojo brillante */
+}
+
+/* Sello Graffiti CAÍDO genérico */
 .card.caido-en-batalla::after {
     content: 'CAÍDO';
     position: absolute;
-    top: 55px; /* Centrado vertical en la carátula de 180px */
-    left: 45px; /* Centrado horizontal en la carátula de 180px (con 20px padding) */
+    top: 55px;
+    left: 45px;
     z-index: 10;
-    color: rgba(220, 20, 60, 0.85); /* Rojo sangre semitransparente */
+    color: rgba(220, 20, 60, 0.85);
     border: 5px solid rgba(220, 20, 60, 0.85);
     padding: 6px 14px;
     font-family: 'Montserrat', sans-serif;
@@ -2984,6 +3014,21 @@ header h1.main-title {
     background-color: rgba(0, 0, 0, 0.5);
     box-shadow: 0 0 12px rgba(220, 20, 60, 0.4);
     border-radius: 4px;
+    transition: all 0.3s ease-in-out !important; /* Suave transición en hover */
+}
+
+/* Sello Graffiti CAÍDO sobre la carátula - Ajustado para padding del cementerio (12px/18px) */
+.cementerio-grid .card.caido-en-batalla::after {
+    top: 75px !important;
+    left: 48px !important;
+}
+
+/* Sello en hover (Forzado para Cementerio) */
+.cementerio-grid .card.caido-en-batalla:hover::after {
+    color: #ff0000 !important; /* El sello resalta en rojo sangre */
+    border-color: #ff0000 !important;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.5), inset 0 0 10px rgba(255, 0, 0, 0.3) !important;
+    opacity: 1 !important;
 }
 
 /* Nueva clase derrotado para la tarjeta original en el combate de arriba */

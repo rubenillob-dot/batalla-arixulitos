@@ -909,6 +909,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ruletaSpinsCount = 0;
             ruletaCurrentRotation = 0;
             
+            // Reubicar perdedores en el cementerio de barras
+            reubicarPerdedores(ruletaGanadores);
+            
             // Resetear podio visualmente
             resetearPodioVisual();
             
@@ -1142,6 +1145,154 @@ function dibujarRuleta(ganadores) {
     ctx.lineWidth = 4;
     ctx.stroke();
     ctx.shadowBlur = 0;
+}
+
+// === GESTIÓN DE PERDEDORES Y REUBICACIÓN EN EL UNDERGROUND ===
+function reubicarPerdedores(ganadores) {
+    const activeSongs = CANCIONES_DATA.filter(song => song.activo !== false);
+    const cementerio = document.getElementById('contenedor-eliminados');
+    if (!cementerio) return;
+
+    // 1. Restaurar tarjetas originales de combates (quitar clase derrotado)
+    document.querySelectorAll('.card.derrotado').forEach(card => {
+        card.classList.remove('derrotado');
+    });
+
+    // 2. Limpiar el cementerio (borrar clones viejos)
+    cementerio.innerHTML = '';
+
+    const ganadoresIds = new Set(ganadores.map(song => song.id));
+
+    // 3. Clonar los perdedores y moverlos al cementerio
+    activeSongs.forEach(song => {
+        if (!ganadoresIds.has(song.id)) {
+            const originalCard = document.getElementById('cancion' + song.id);
+            if (originalCard) {
+                // Marcar tarjeta original como derrotada
+                originalCard.classList.add('derrotado');
+
+                // Crear clon exacto
+                const clon = originalCard.cloneNode(true);
+                
+                // Modificar todos los IDs internos agregando '-clone' para evitar duplicados en el DOM
+                clon.querySelectorAll('[id]').forEach(el => {
+                    el.id = el.id + '-clone';
+                });
+                clon.id = clon.id + '-clone';
+
+                // Cambiar el onclick del play-btn en el clon
+                const clonPlayBtn = clon.querySelector('.play-btn');
+                if (clonPlayBtn) {
+                    clonPlayBtn.setAttribute('onclick', `reproducirClon('${song.id}')`);
+                }
+
+                // Añadir la clase para dar el estilo de "caído en batalla" al clon
+                clon.classList.add('caido-en-batalla');
+
+                // Vincular eventos de reproducción y línea de tiempo al clon
+                vincularEventosClon(clon, song.id);
+
+                // Insertar clon en el cementerio
+                cementerio.appendChild(clon);
+            }
+        }
+    });
+}
+
+// Reproducción de audio para tarjetas clonadas en el Cementerio
+function reproducirClon(id) {
+    const audioActual = document.getElementById('audio' + id + '-clone');
+    const iconoActual = document.getElementById('playIcon' + id + '-clone');
+    const cartaActual = document.getElementById('cancion' + id + '-clone');
+
+    if (!audioActual || !audioActual.src || audioActual.src.endsWith("html")) {
+        alert("Añade una canción .mp3 para que suene.");
+        return;
+    }
+
+    // Detener cualquier otro audio en reproducción (original o clon)
+    document.querySelectorAll('audio').forEach(audio => {
+        if (audio !== audioActual) {
+            audio.pause();
+            const otherCard = audio.closest('.card');
+            if (otherCard) {
+                otherCard.classList.remove('playing');
+                const playIcon = otherCard.querySelector('.play-btn i');
+                if (playIcon) {
+                    playIcon.classList.remove('fa-pause');
+                    playIcon.classList.add('fa-play');
+                }
+            }
+        }
+    });
+
+    if (audioActual.paused) {
+        audioActual.play();
+        cartaActual.classList.add('playing');
+        iconoActual.classList.remove('fa-play');
+        iconoActual.classList.add('fa-pause');
+    } else {
+        audioActual.pause();
+        cartaActual.classList.remove('playing');
+        iconoActual.classList.remove('fa-pause');
+        iconoActual.classList.add('fa-play');
+    }
+}
+
+// Vincular los listeners de eventos para la barra de progreso y reproducción en la tarjeta clonada
+function vincularEventosClon(clon, id) {
+    const audio = clon.querySelector('audio');
+    const timeline = clon.querySelector('.timeline');
+    
+    if (audio) {
+        audio.addEventListener('loadedmetadata', function () {
+            if (!isNaN(this.duration)) {
+                const timeText = clon.querySelector('.time-text');
+                const totalMins = Math.floor(this.duration / 60);
+                const totalSecs = Math.floor(this.duration % 60).toString().padStart(2, '0');
+                if (timeText) timeText.innerText = `0:00 / ${totalMins}:${totalSecs}`;
+            }
+        });
+
+        audio.addEventListener('timeupdate', function () {
+            if (this.duration) {
+                const progressBar = clon.querySelector('.timeline-progress');
+                const timeText = clon.querySelector('.time-text');
+
+                const progressPercent = (this.currentTime / this.duration) * 100;
+                if (progressBar) progressBar.style.width = progressPercent + '%';
+
+                const currentMins = Math.floor(this.currentTime / 60);
+                const currentSecs = Math.floor(this.currentTime % 60).toString().padStart(2, '0');
+                const totalMins = Math.floor(this.duration / 60);
+                const totalSecs = Math.floor(this.duration % 60).toString().padStart(2, '0');
+
+                if (timeText) timeText.innerText = `${currentMins}:${currentSecs} / ${totalMins}:${totalSecs}`;
+            }
+        });
+
+        audio.addEventListener('ended', function () {
+            clon.classList.remove('playing');
+            const progressBar = clon.querySelector('.timeline-progress');
+            if (progressBar) progressBar.style.width = '0%';
+            const playIcon = clon.querySelector('.play-btn i');
+            if (playIcon) {
+                playIcon.classList.remove('fa-pause');
+                playIcon.classList.add('fa-play');
+            }
+        });
+    }
+
+    if (timeline && audio) {
+        timeline.addEventListener('click', function (e) {
+            if (audio.duration) {
+                const rect = this.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const percentage = clickX / rect.width;
+                audio.currentTime = percentage * audio.duration;
+            }
+        });
+    }
 }
 
 

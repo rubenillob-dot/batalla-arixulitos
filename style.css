@@ -2864,3 +2864,131 @@ header h1.main-title {
         font-size: 0.65rem;
     }
 }
+
+/* === SECCIÓN EL UNDERGROUND: CEMENTERIO DE BARRAS === */
+#cementerio-barras {
+    background-color: #000000;
+    /* Patrón de ladrillos oscuros utilizando gradientes CSS */
+    background-image: 
+        linear-gradient(rgba(0, 0, 0, 0.94), rgba(0, 0, 0, 0.97)),
+        repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255, 255, 255, 0.015) 40px, rgba(255, 255, 255, 0.015) 42px),
+        repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(255, 255, 255, 0.01) 80px, rgba(255, 255, 255, 0.01) 82px);
+    border-top: 4px solid #5a0e0e;
+    padding: 3rem 1.5rem;
+    margin-top: 60px;
+    border-radius: 12px;
+    box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.95);
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.underground-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-style: italic;
+    font-size: 2.3rem;
+    color: #8b2525; /* Rojo oscuro apagado */
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 2.5rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 15px rgba(139, 37, 37, 0.35);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.underground-title::after {
+    content: '';
+    width: 120px;
+    height: 4px;
+    background: #8b2525;
+    border-radius: 2px;
+    box-shadow: 0 0 8px rgba(139, 37, 37, 0.5);
+}
+
+.cementerio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr));
+    gap: 2rem;
+    padding: 2rem;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+/* Modificaciones específicas para tarjetas dentro del cementerio */
+.cementerio-grid .card {
+    min-width: 0 !important;
+    width: 100% !important;
+    flex: 1;
+    min-height: max-content !important;
+    padding-bottom: 1.5rem !important;
+    height: auto !important;
+}
+
+/* Forzar que los textos no se corten en las tarjetas clonadas del cementerio */
+.cementerio-grid .card .author-row,
+.cementerio-grid .card .song-title,
+.cementerio-grid .card .podio-winner-name,
+.cementerio-grid .card .podio-winner-song {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    word-break: break-word !important;
+    text-overflow: clip !important;
+    overflow: visible !important;
+}
+
+/* Estilos de Caído en Batalla en el cementerio */
+.card.caido-en-batalla {
+    filter: grayscale(80%) brightness(0.7) !important;
+    opacity: 0.8;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    border-color: rgba(139, 37, 37, 0.25) !important;
+}
+
+.card.caido-en-batalla,
+.card.caido-en-batalla .author-row,
+.card.caido-en-batalla .song-title,
+.card.caido-en-batalla .time-text {
+    color: #ffffff !important;
+}
+
+.card.caido-en-batalla:hover {
+    filter: grayscale(20%) brightness(1) !important;
+    opacity: 1 !important;
+    border-color: #8b2525 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.9), 0 0 15px rgba(139, 37, 37, 0.3) !important;
+}
+
+/* Sello Graffiti CAÍDO sobre la carátula */
+.card.caido-en-batalla::after {
+    content: 'CAÍDO';
+    position: absolute;
+    top: 55px; /* Centrado vertical en la carátula de 180px */
+    left: 45px; /* Centrado horizontal en la carátula de 180px (con 20px padding) */
+    z-index: 10;
+    color: rgba(220, 20, 60, 0.85); /* Rojo sangre semitransparente */
+    border: 5px solid rgba(220, 20, 60, 0.85);
+    padding: 6px 14px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 900;
+    font-style: italic;
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transform: rotate(-15deg);
+    pointer-events: none;
+    background-color: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 12px rgba(220, 20, 60, 0.4);
+    border-radius: 4px;
+}
+
+/* Nueva clase derrotado para la tarjeta original en el combate de arriba */
+.card.derrotado {
+    opacity: 0.4 !important;
+    filter: grayscale(100%) !important;
+    pointer-events: none !important;
+}
